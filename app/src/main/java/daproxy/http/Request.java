@@ -6,6 +6,6 @@ public interface Request {
 
     public RequestMethod getMethod();
 
-    public String handle(Socket socket);
+    public Response handle(Socket socket);
 
 }

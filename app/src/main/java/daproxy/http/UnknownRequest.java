@@ -12,14 +12,12 @@ public class UnknownRequest implements Request {
 
     @Override
     public RequestMethod getMethod() {
-        // TODO Auto-generated method stub
-        return null;
+        return RequestMethod.INVALID;
     }
 
     @Override
-    public String handle(Socket socket) {
-        // TODO Auto-generated method stub
-        return "Unknown Request";
+    public Response handle(Socket socket) {
+        return Response.BAD_REQUEST();
     }
 
 }

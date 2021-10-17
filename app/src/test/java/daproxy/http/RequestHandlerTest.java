@@ -20,6 +20,6 @@ public class RequestHandlerTest {
 
         RequestHandler rh = new RequestHandler(socket);
 
-        assertThat(rh.evaluateRequest(firstLine)).isEqualTo(RequestMethod.CONNECT);
+        assertThat(rh.evaluateRequest(firstLine).getMethod()).isEqualTo(RequestMethod.CONNECT);
      }
 }

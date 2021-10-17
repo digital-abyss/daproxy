@@ -48,7 +48,7 @@ public class RequestHandler {
 
     public Request evaluateRequest(String firstLine) {
 
-        if (firstLine.matches("CONNECT [a-z,A-Z,0-9,.,:]* HTTP1.1$")) {
+        if (firstLine.matches(ConnectRequest.MATCHER)) {
             return new ConnectRequest(firstLine);
         } else {
             return new UnknownRequest(firstLine);
