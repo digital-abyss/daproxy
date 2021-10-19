@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 
 public class ConnectRequest implements Request {
 
-    public static final String MATCHER = ".*"; //"CONNECT [-a-zA-Z0-9+&@#/%?=~_|!:,.;]* HTTP/1\\.1$";
+    public static final String MATCHER = ".*"; // "CONNECT [-a-zA-Z0-9+&@#/%?=~_|!:,.;]* HTTP/1\\.1$";
 
     private final String connectString;
 
@@ -25,8 +25,9 @@ public class ConnectRequest implements Request {
     public Response handle(Socket socket) {
         System.out.println("Handling a Connect Request");
         try {
-            Socket downstreamSocket = new Socket(extractUrl(), 443); //extractPort());
-            // if this connects, we can give a 200 OK back to client, which will then allow it to initate further packet transfers.
+            Socket downstreamSocket = new Socket(extractUrl(), 443); // extractPort());
+            // if this connects, we can give a 200 OK back to client, which will then allow
+            // it to initate further packet transfers.
             BufferedWriter br = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             Response resp = new Response(200);
 
@@ -35,20 +36,31 @@ public class ConnectRequest implements Request {
             System.out.println("writing " + resp.toString() + " to client socket");
             br.flush();
 
+            new Thread(() -> {
+                while (true) {
+                    try {
 
-            new Thread( () -> {try {
-                while(true) {
-                    socket.getInputStream().transferTo(downstreamSocket.getOutputStream());
+                        socket.getInputStream().transferTo(downstreamSocket.getOutputStream());
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        break;
+                    }
                 }
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } }).start(); //connect output from client and writes to downstream
-            
-            while(true){
-                downstreamSocket.getInputStream().transferTo(socket.getOutputStream()); //connect output from downstream and writes to client
+            }).start(); // connect output from client and writes to downstream
+
+            while (true) {
+                try {
+                    downstreamSocket.getInputStream().transferTo(socket.getOutputStream()); // connect output from
+                                                                                            // downstream and writes to
+                                                                                            // client
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    break;
+                }
             }
-            
+
         } catch (IndexOutOfBoundsException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
@@ -60,7 +72,7 @@ public class ConnectRequest implements Request {
 
     public String extractUrl() {
         return connectString.split(" ")[1].split(":")[0];
-        //return connectString.split("/")[2];
+        // return connectString.split("/")[2];
     }
 
     public int extractPort() {
@@ -68,7 +80,7 @@ public class ConnectRequest implements Request {
         if (portString.length >= 1) {
             return Integer.parseInt(portString[1]);
         }
-        //TODO -- is this correct?
+        // TODO -- is this correct?
         return 80;
     }
 }
