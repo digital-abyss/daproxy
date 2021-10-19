@@ -33,7 +33,7 @@ public class RequestHandler {
 
             System.out.println("Text = " + firstLine.toString());
 
-            String response = evaluateRequest(firstLine.toString()).handle(socket);
+            Response response = evaluateRequest(firstLine.toString()).handle(socket);
             System.out.println("Response = " + response);
         } catch (IOException ex) {
             ex.printStackTrace();

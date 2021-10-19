@@ -17,6 +17,7 @@ public class UnknownRequest implements Request {
 
     @Override
     public Response handle(Socket socket) {
+        System.out.println("Handling a Bad Request");
         return Response.BAD_REQUEST();
     }
 

@@ -1,16 +1,18 @@
 package daproxy.http;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.Map;
+
 
 public class Response {
 
     private final int code;
 
-    private final ImmutableMap<Integer, String> codeMap = ImmutableMap.of(
+    private final Map<Integer, String> codeMap = Collections.unmodifiableMap(Map.of(
         200, "OK",
         400, "BAD REQUEST",
         404, "NOT FOUND"
-    );
+    ));
 
     public static Response OK() {
         return new Response(200);
@@ -27,7 +29,7 @@ public class Response {
     }
 
     public String toString() {
-        return String.format("HTTP1.1 %s %s\n",Integer.toString(code), codeMap.get(code)) +
+        return String.format("HTTP/1.1 %s %s\r\n",Integer.toString(code), codeMap.get(code)) +
                 "Proxy-agent: daproxy 0.0.1\n" +
                 "\r\n";
     }
