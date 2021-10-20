@@ -22,18 +22,23 @@ public class RequestHandler {
             System.out.println("accepted connection from " + remoteAddr + " with connection " + localAddr);
 
 
-            StringBuilder firstLine = new StringBuilder(REQUEST_LINE_SIZE);
-            //TODO: Implement timeout waiting for first line and size limit
-            while (true) {
-                int c = in.read();
-                if (c == '\r' || c == '\n' || c == -1)
-                    break;
-                firstLine.append((char) c);
-            }
+            int recvBytes;
+            byte[] buf = new byte[1024];
+            StringBuilder firstRequest = new StringBuilder(REQUEST_LINE_SIZE);
+            //while (true) {
+                recvBytes = in.read(buf);
 
-            System.out.println("Text = " + firstLine.toString());
+                System.out.println("Processing Start of Request: reading " + recvBytes );
 
-            Response response = evaluateRequest(firstLine.toString()).handle(socket);
+                // System.out.println("HEX Output: " + hex(buf, 0, recvBytes));
+                firstRequest.append(new String(buf, 0, recvBytes, "UTF-8"));
+          //  }
+    
+
+
+            System.out.println("Text = " + firstRequest.toString());
+
+            Response response = evaluateRequest(firstRequest.toString()).handle(socket);
             System.out.println("Response = " + response);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -48,11 +53,11 @@ public class RequestHandler {
 
     public Request evaluateRequest(String firstLine) {
 
-        if (firstLine.matches(ConnectRequest.MATCHER)) {
+        //if (firstLine.matches(ConnectRequest.MATCHER)) {
             return new ConnectRequest(firstLine);
-        } else {
-            return new UnknownRequest(firstLine);
-        }
+        // } else {
+        //     return new UnknownRequest(firstLine);
+        // }
     }
 }
 

@@ -9,7 +9,7 @@ public class Response {
     private final int code;
 
     private final Map<Integer, String> codeMap = Collections.unmodifiableMap(Map.of(
-        200, "OK",
+        200, "Connection established",
         400, "BAD REQUEST",
         404, "NOT FOUND"
     ));
@@ -29,9 +29,9 @@ public class Response {
     }
 
     public String toString() {
-        return String.format("HTTP/1.1 %s %s\r\n",Integer.toString(code), codeMap.get(code)) +
-                "Proxy-agent: daproxy 0.0.1\n" +
-                "\r\n";
+        return String.format("HTTP/1.1 %s %s\r\n\r\n",Integer.toString(code), codeMap.get(code)); // +
+                // "Proxy-agent: daproxy 0.0.1\n" +
+                // "\r\n";
     }
     
 }
