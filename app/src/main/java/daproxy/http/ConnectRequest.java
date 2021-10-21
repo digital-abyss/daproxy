@@ -1,18 +1,99 @@
 package daproxy.http;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 
+import daproxy.log.LogUtils;
+
+/**
+ * A valid CONNECT request is as follows:
+ * CONNECT SP <url> SP HTTP/1.1 CRLF
+ * where SP is space, and CRLF is \r\n
+ * See: https://datatracker.ietf.org/doc/html/rfc2616/ [page 16]
+ */
 public class ConnectRequest implements Request {
 
-    public static final String MATCHER = ".*"; // "CONNECT [-a-zA-Z0-9+&@#/%?=~_|!:,.;]* HTTP/1\\.1$";
+
+    private static final String CONNECT_TOKEN = "CONNECT ";
+    private static final String HTTP_TOKEN = "HTTP/1.1";
+    private static final byte CR = (byte)'\r';
+    private static final byte LF = (bute)'\n';
+
+    /**
+     * Returns true if a valid HTTP/1.1 CONNECT request.
+     * See https://httpwg.org/specs/rfc7231.html#CONNECT, https://datatracker.ietf.org/doc/html/rfc2817, and https://httpwg.org/specs/rfc7231.html#CONNECT
+     * for more details.
+     * This implementation does not support request pipelining, and will not evaluate any requests if pipelined.
+     * Any subsequent data on the socket will be discarded.
+     * @param request - a String object containing a sequence of characters.
+     * @return true if the sequence contains a valid connect request
+     * 
+     */
+    public static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived) throws InvalidRequestException, IncompleteRequestException {
+
+        if (dataReceived < CONNECT_TOKEN.length()) {
+            throw new IncompleteRequestException("method not finished");
+        }
+
+        byte[] connectToken = CONNECT_TOKEN.getBytes(StandardCharsets.US_ASCII);
+
+        int i = 0;
+
+        for( ; i < connectToken.length; ++i) {
+            if (connectToken[i] != buf[i]) {
+                throw new InvalidRequestException("Invalid Request.  Server only handles CONNECT Requests");
+            }
+        }
+        
+        //parse url
+        boolean foundUrlSpace = false;
+        for( ; i < dataReceived; ++i) {
+            if(buf[i] == ' ') {
+                foundUrlSpace = true;
+                break;
+            }
+        }
+        if(!foundUrlSpace) {
+            throw new IncompleteRequestException("url not finished");
+        }
+        String url = new String(buf, CONNECT_TOKEN.length(), i, StandardCharsets.US_ASCII);
+
+        //validate Protocol
+        byte[] httpToken = HTTP_TOKEN.getBytes(StandardCharsets.US_ASCII);
+        for(int j = 0 ; i < dataReceived && j < HTTP_TOKEN.length(); ++i, ++j) {
+            if (httpToken[j] != buf[i]) {
+                throw new InvalidRequestException("Invalid HTTP Protocol. Server only handles HTTP/1.1");
+            }
+        }
+
+        //find first CRLF
+        for ( ; i < dataReceived ; ++i) {
+            if (buf[i] != ' ' && buf[i] != CR && buf[i] != LF) {
+                throw new InvalidRequestException("Invalid characters after Protocol.");
+            }
+
+            if (buf[i] == LF && buf[i-1] == CR) {
+                break;
+            }
+        }
+
+        //if I have back-to-back CRLF's (can have spaces in between), then CONNECT request is finished
+        //need to implement a backtracking algorithm to find back-to-back CRLF's
+        i--;
+        boolean isSecondCRLF = false;
+        while( i < dataReceived && buf[i] == ' ') {
+            i++;
+        }
+
+        //TODO: parse other data.  For now, stick it in to a buffer.
+
+    }
+
+
+
 
     private final String connectString;
 
@@ -25,16 +106,7 @@ public class ConnectRequest implements Request {
         return RequestMethod.CONNECT;
     }
 
-    private String hex(byte[] bytes, int start, int finish) {
-        StringBuilder result = new StringBuilder();
-        for (int i = start; i < finish; i++) {
-            byte aByte = bytes[i];
-            result.append(String.format("%02x ", aByte));
-            // upper case
-            // result.append(String.format("%02X", aByte));
-        }
-        return result.toString();
-    }
+
 
     private void writeInputToOutput(InputStream in, OutputStream out) throws IOException {
         int recvBytes;
@@ -43,7 +115,7 @@ public class ConnectRequest implements Request {
         while ((recvBytes = in.read(buf)) != -1) {
             System.out.println("Thread: Writing " + recvBytes + " to socket");
             
-            System.out.println("HEX Output: " + hex(buf, 0, recvBytes));
+            System.out.println("HEX Output: " + LogUtils.bytesToHex(buf, 0, recvBytes));
             out.write(buf, 0, recvBytes);
         }
 
