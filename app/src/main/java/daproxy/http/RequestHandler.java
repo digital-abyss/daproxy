@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RequestHandler {
 
     private static final int REQUEST_LINE_SIZE = 80;
@@ -16,10 +19,11 @@ public class RequestHandler {
     }
 
     public void handle() {
-        try (InputStream in = socket.getInputStream()) {
+        try {
+            InputStream in = socket.getInputStream();
             SocketAddress remoteAddr = socket.getRemoteSocketAddress();
             SocketAddress localAddr = socket.getLocalSocketAddress();
-            System.out.println("accepted connection from " + remoteAddr + " with connection " + localAddr);
+            log.debug("accepted connection from " + remoteAddr + " with connection " + localAddr);
 
 
             int recvBytes;
