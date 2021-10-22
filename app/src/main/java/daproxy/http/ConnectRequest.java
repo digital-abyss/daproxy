@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
 import daproxy.log.LogUtils;
@@ -160,6 +161,10 @@ public class ConnectRequest implements Request {
             out.write(buf, 0, recvBytes);
         }
 
+        if (recvBytes == -1) { //socket is closed
+            throw new SocketException("Detected closed socket");
+        }
+
     }
 
     private String getHost(String url) {
@@ -204,6 +209,16 @@ public class ConnectRequest implements Request {
                         writeInputToOutput(socket.getInputStream(), downstreamSocket.getOutputStream());
                     } catch (Exception ex) {
                         ex.printStackTrace();
+                        try {
+                            socket.close();
+                        } catch (Exception ex2) {
+                            ex.printStackTrace();
+                        }
+                        try {
+                            downstreamSocket.close();
+                        } catch (Exception ex2) {
+                            ex.printStackTrace();
+                        }
                     }
                 } //TODO: Close all sockets.
 
@@ -223,6 +238,16 @@ public class ConnectRequest implements Request {
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    try {
+                        socket.close();
+                    } catch (Exception ex2) {
+                        ex.printStackTrace();
+                    }
+                    try {
+                        downstreamSocket.close();
+                    } catch (Exception ex2) {
+                        ex.printStackTrace();
+                    }
                 }
 
             } //TODO: Close all sockets.
