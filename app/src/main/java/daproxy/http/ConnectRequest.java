@@ -209,7 +209,7 @@ public class ConnectRequest implements Request {
 
             }).start();
 
-            while (!socket.isClosed() && !downstreamSocket.isClosed()) {
+            while (!socket.isClosed() && !downstreamSocket.isClosed()) { // ugh, this is not what you want: https://stackoverflow.com/questions/10240694/java-socket-api-how-to-tell-if-a-connection-has-been-closed/10241044
                 try {
                     Thread.sleep(500);
                     System.out.println("Main: Socket (bound, connected, closed, in avail): (" + socket.isBound() + ", "
