@@ -14,7 +14,7 @@ public class Response {
         404, "NOT FOUND"
     ));
 
-    public static Response OK() {
+    public static Response CONNECTION_ESTABLISHED() {
         return new Response(200);
     }
     public static Response BAD_REQUEST() {

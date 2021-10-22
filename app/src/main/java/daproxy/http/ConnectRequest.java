@@ -3,7 +3,9 @@ package daproxy.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import daproxy.log.LogUtils;
@@ -20,7 +22,7 @@ public class ConnectRequest implements Request {
     private static final String CONNECT_TOKEN = "CONNECT ";
     private static final String HTTP_TOKEN = "HTTP/1.1";
     private static final byte CR = (byte)'\r';
-    private static final byte LF = (bute)'\n';
+    private static final byte LF = (byte)'\n';
 
     /**
      * Returns true if a valid HTTP/1.1 CONNECT request.
@@ -32,7 +34,7 @@ public class ConnectRequest implements Request {
      * @return true if the sequence contains a valid connect request
      * 
      */
-    public static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived) throws InvalidRequestException, IncompleteRequestException {
+    public static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived) throws InvalidRequestException, IncompleteRequestException, MalformedURLException {
 
         if (dataReceived < CONNECT_TOKEN.length()) {
             throw new IncompleteRequestException("method not finished");
@@ -59,7 +61,8 @@ public class ConnectRequest implements Request {
         if(!foundUrlSpace) {
             throw new IncompleteRequestException("url not finished");
         }
-        String url = new String(buf, CONNECT_TOKEN.length(), i, StandardCharsets.US_ASCII);
+        URL url = new URL(new String(buf, CONNECT_TOKEN.length(), i, StandardCharsets.US_ASCII));
+        
 
         //validate Protocol
         byte[] httpToken = HTTP_TOKEN.getBytes(StandardCharsets.US_ASCII);
@@ -82,23 +85,47 @@ public class ConnectRequest implements Request {
 
         //if I have back-to-back CRLF's (can have spaces in between), then CONNECT request is finished
         //need to implement a backtracking algorithm to find back-to-back CRLF's
-        i--;
-        boolean isSecondCRLF = false;
-        while( i < dataReceived && buf[i] == ' ') {
-            i++;
+        int headersStart = i+1;
+        
+        boolean allCharsAreSpaces = true;
+        for( ; i < dataReceived ; ++i) {
+            if (buf[i] != ' ' && buf[i] != LF && buf[i] != CR) {
+                allCharsAreSpaces = false;
+            }
+            if (buf[i] == LF && buf[i-1] == CR) {
+                if (allCharsAreSpaces) {
+                    break;  //found end of request
+                } else {
+                    allCharsAreSpaces = true;
+                }
+            }
+        }
+        if ( i >= dataReceived ) {
+            throw new IncompleteRequestException("Headers are incomplete");
         }
 
-        //TODO: parse other data.  For now, stick it in to a buffer.
+        byte[] remainingBytes = new byte[0];
+        if ( i + 1 < dataReceived) {
+            remainingBytes = new byte[dataReceived - i];
+            for (int j = i ; j < dataReceived ; j++) {
+                remainingBytes[j] = buf[i+j];
+            }
+        }
 
+        String headersBlob = new String(buf, headersStart, i, StandardCharsets.US_ASCII);
+        return new ConnectRequest(url, headersBlob, remainingBytes);
     }
 
 
 
+    private final URL url;
+    private final String headersBlob;
+    private final byte[] firstBytesToWrite;
 
-    private final String connectString;
-
-    public ConnectRequest(String firstLine) {
-        connectString = firstLine;
+    public ConnectRequest(URL url, String headersBlob, byte[] firstBytesToWrite) {
+        this.url = url;
+        this.headersBlob = headersBlob;
+        this.firstBytesToWrite = firstBytesToWrite;
     }
 
     @Override
@@ -125,7 +152,7 @@ public class ConnectRequest implements Request {
     public Response handle(Socket socket) {
         System.out.println("Handling a Connect Request");
         try {
-            Socket downstreamSocket = new Socket(extractUrl(), 443); // extractPort());
+            Socket downstreamSocket = new Socket(url.getHost(), url.getPort()); // extractPort());
             // if this connects, we can give a 200 OK back to client, which will then allow
             // it to initate further packet transfers.
             // BufferedWriter br = new BufferedWriter(new
@@ -182,22 +209,13 @@ public class ConnectRequest implements Request {
             ex.printStackTrace();
         }
 
-        return Response.OK();
+        return Response.CONNECTION_ESTABLISHED();
     }
 
-    public String extractUrl() {
-        return connectString.split(" ")[1].split(":")[0];
-        // return connectString.split("/")[2];
+    public URL getUrl() {
+        return url;
     }
 
-    public int extractPort() {
-        String[] portString = connectString.split(" ")[1].split(":");
-        if (portString.length >= 1) {
-            return Integer.parseInt(portString[1]);
-        }
-        // TODO -- is this correct?
-        return 80;
-    }
 }
 
 // I believe the HTTP Layer bytes should start with 16 03 01 02   00 01 00 01 fc 03 --> this happens for all the Client hello requests out of curl (in both scenarios)

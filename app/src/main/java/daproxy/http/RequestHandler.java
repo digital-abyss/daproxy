@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,14 +26,24 @@ public class RequestHandler {
         try {
             log.debug("accepted connection from " + remoteAddr + " with connection " + localAddr);
 
-            ConnectRequest request = waitForConnect();
+            Request request = waitForConnect();
 
+            request.handle(socket);
             // respondOK()
 
         } catch (IOException ex) { // AN IOException will occur if the read request is blocking and the socket is
                                    // closed by the thread pool.
             log.error("Client Socket " + remoteAddr + " closed due to inactivity");
-        } finally {
+        } catch (InvalidRequestException ex) {
+            log.error("Invalid Request Received");
+            try {
+                socket.getOutputStream().write(Response.BAD_REQUEST().toString().getBytes(StandardCharsets.US_ASCII));
+            } catch (IOException ioEX) {
+                log.error("Error writing BAD Request to client", ioEX);
+
+            }
+            
+        }finally {
             try {
                 socket.close();
             } catch (IOException ex) {
@@ -41,7 +52,7 @@ public class RequestHandler {
         }
     }
 
-    public ConnectRequest waitForConnect() throws IOException {
+    public ConnectRequest waitForConnect() throws IOException, InvalidRequestException {
         InputStream in = socket.getInputStream();
         boolean validConnectRequest = false;
 
@@ -51,8 +62,12 @@ public class RequestHandler {
             buff.put(tmp);
             
 
-           // firstRequest.append(new String(buf, 0, recvBytes, "UTF-8"));
-            validConnectRequest = ConnectRequest.isConnectRequest(buff.array(), buff.position()) ;//firstRequest.toString());
+            try {
+                return ConnectRequest.parseConnectRequest(buff.array(), buff.position()) ;//firstRequest.toString());
+            } catch (IncompleteRequestException ex) {
+                log.debug("Partially formed request. Waiting for more");
+            }
+            
             // System.out.println("HEX Output: " + hex(buf, 0, recvBytes));
             // System.out.println("Processing Start of Request: reading " + recvBytes );
         }
@@ -68,7 +83,7 @@ public class RequestHandler {
         // ==> you cannot discard any data after on the pipe, and should be forwarded to
         // the target proxy host.
 
-        return new ConnectRequest(firstRequest.toString());
+        return null;
     }
 
 }

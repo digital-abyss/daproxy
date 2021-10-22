@@ -74,3 +74,6 @@ gradle-app.setting
 
 # Ignore Gradle build output directory
 build
+
+# Something is creating an app/bin folder with stuff I don't want checked in.
+app/bin
