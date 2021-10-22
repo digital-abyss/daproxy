@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -54,12 +55,16 @@ public class RequestHandler {
 
     public ConnectRequest waitForConnect() throws IOException, InvalidRequestException {
         InputStream in = socket.getInputStream();
-        boolean validConnectRequest = false;
 
         ByteBuffer buff = ByteBuffer.wrap(new byte[REQUEST_BUFFER_SIZE]);
-        while (!validConnectRequest) {
+        while (true) {
             byte[] tmp = new byte[REQUEST_BUFFER_SIZE];
             int numBytes = in.read(tmp); // whenever I try to use readAllBytes, it just hangs indefintely.
+
+            if (numBytes == -1) {
+                throw new SocketException("Detected closed socket");
+            }
+
             buff.put(tmp, 0, numBytes);
 
             log.debug("Received new bytes: " + LogUtils.bytesToHex(tmp, 0, numBytes));
@@ -86,7 +91,7 @@ public class RequestHandler {
         // ==> you cannot discard any data after on the pipe, and should be forwarded to
         // the target proxy host.
 
-        return null;
+        //return null;
     }
 
 }
