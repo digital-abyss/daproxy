@@ -5,10 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import daproxy.log.LogUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A valid CONNECT request is as follows:
@@ -16,6 +16,7 @@ import daproxy.log.LogUtils;
  * where SP is space, and CRLF is \r\n
  * See: https://datatracker.ietf.org/doc/html/rfc2616/ [page 16]
  */
+@Slf4j
 public class ConnectRequest implements Request {
 
 
@@ -35,7 +36,7 @@ public class ConnectRequest implements Request {
      * 
      */
     public static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived) throws InvalidRequestException, IncompleteRequestException, MalformedURLException {
-
+        log.debug("Parsing Connect Request\n" + new String(buf,0, dataReceived, StandardCharsets.US_ASCII));
         if (dataReceived < CONNECT_TOKEN.length()) {
             throw new IncompleteRequestException("method not finished");
         }
@@ -45,10 +46,12 @@ public class ConnectRequest implements Request {
         int i = 0;
 
         for( ; i < connectToken.length; ++i) {
+           
             if (connectToken[i] != buf[i]) {
                 throw new InvalidRequestException("Invalid Request.  Server only handles CONNECT Requests");
             }
         }
+        log.debug("Found Connect Token i = " + i);
         
         //parse url
         boolean foundUrlSpace = false;
@@ -58,20 +61,31 @@ public class ConnectRequest implements Request {
                 break;
             }
         }
+        //43 4f 4e 4e 45 43 54 20 62 6c 6f 67 2e 64 69 67 69 74 61 6c 61 62 79 73 73 2e 63 61 3a 34 34 33 20 48 54 54 50 2f 31 2e 31 0d 0a 48 6f 73 74 3a 20 62 6c 6f 67 2e 64 69 67 69 74 61 6c 61 62 79 73 73 2e 63 61 3a 34 34 33 0d 0a 55 73 65 72 2d 41 67 65 6e 74 3a 20 63 75 72 6c 2f 37 2e 37 34 2e 30 0d 0a 50 72 6f 78 79 2d 43 6f 6e 6e 65 63 74 69 6f 6e 3a 20 4b 65 65 70 2d 41 6c 69 76 65 0d 0a 0d 0a 
+        //43 4f 4e 4e 45 43 54 20 62 6c 6f 67 2e 64 69 67 69 74 61 6c 61 62 79 73 73 2e 63 61 3a 34 34 33 20 48 54 54 50 2f 31 2e 31 0d 0a 48 6f 73 74 3a 20 62 6c 6f 67 2e 64 69 67 69 74 61 6c 61 62 79 73 73 2e 63 61 3a 34 34 33 0d 0a 55 73 65 72 2d 41 67 65 6e 74 3a 20 63 75 72 6c 2f 37 2e 37 34 2e 30 0d 0a 50 72 6f 78 79 2d 43 6f 6e 6e 65 63 74 69 6f 6e 3a 20 4b 65 65 70 2d 41 6c 69 76 65 0d 0a 0d 0a 
+        //0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35
+        //CONNECT blog.digitalabyss.ca:443 HTTP/1.1
+        //0123456789012345678901234567890123456789
+                                        //32
+
         if(!foundUrlSpace) {
             throw new IncompleteRequestException("url not finished");
         }
-        URL url = new URL(new String(buf, CONNECT_TOKEN.length(), i, StandardCharsets.US_ASCII));
-        
-
+        String url = new String(buf, CONNECT_TOKEN.length(), i - CONNECT_TOKEN.length(), StandardCharsets.US_ASCII);
+        log.debug("Found URL = " + url + " i = " + i);
+        log.debug("buf = " + LogUtils.bytesToHex(buf, 0, dataReceived));
         //validate Protocol
         byte[] httpToken = HTTP_TOKEN.getBytes(StandardCharsets.US_ASCII);
+        i++;
+        log.debug("httpToken = " + LogUtils.bytesToHex(httpToken, 0, httpToken.length));
         for(int j = 0 ; i < dataReceived && j < HTTP_TOKEN.length(); ++i, ++j) {
+            log.debug("i = " + i + " j = " + j + " buf[i] = " + buf[i] + " httpToken[j] = " + httpToken[j]);
             if (httpToken[j] != buf[i]) {
                 throw new InvalidRequestException("Invalid HTTP Protocol. Server only handles HTTP/1.1");
             }
         }
 
+        log.debug("Validated Protocol");
         //find first CRLF
         for ( ; i < dataReceived ; ++i) {
             if (buf[i] != ' ' && buf[i] != CR && buf[i] != LF) {
@@ -82,10 +96,10 @@ public class ConnectRequest implements Request {
                 break;
             }
         }
-
+        log.debug("Found first CRLF at " + i);
         //if I have back-to-back CRLF's (can have spaces in between), then CONNECT request is finished
         //need to implement a backtracking algorithm to find back-to-back CRLF's
-        int headersStart = i+1;
+        int headersStart = i++;
         
         boolean allCharsAreSpaces = true;
         for( ; i < dataReceived ; ++i) {
@@ -103,11 +117,11 @@ public class ConnectRequest implements Request {
         if ( i >= dataReceived ) {
             throw new IncompleteRequestException("Headers are incomplete");
         }
-
+        log.debug("Found complete request i = " + i + " dataReceived = " + dataReceived);
         byte[] remainingBytes = new byte[0];
         if ( i + 1 < dataReceived) {
             remainingBytes = new byte[dataReceived - i];
-            for (int j = i ; j < dataReceived ; j++) {
+            for (int j = 9 ; j < dataReceived - i ; j++) {
                 remainingBytes[j] = buf[i+j];
             }
         }
@@ -118,11 +132,11 @@ public class ConnectRequest implements Request {
 
 
 
-    private final URL url;
+    private final String url;
     private final String headersBlob;
     private final byte[] firstBytesToWrite;
 
-    public ConnectRequest(URL url, String headersBlob, byte[] firstBytesToWrite) {
+    public ConnectRequest(String url, String headersBlob, byte[] firstBytesToWrite) {
         this.url = url;
         this.headersBlob = headersBlob;
         this.firstBytesToWrite = firstBytesToWrite;
@@ -148,11 +162,18 @@ public class ConnectRequest implements Request {
 
     }
 
+    private String getHost(String url) {
+        return url.split(":")[0];
+    }
+    private int getPort(String url) {
+        return Integer.parseInt(url.split(":")[1]);
+    }
+
     @Override
     public Response handle(Socket socket) {
         System.out.println("Handling a Connect Request");
         try {
-            Socket downstreamSocket = new Socket(url.getHost(), url.getPort()); // extractPort());
+            Socket downstreamSocket = new Socket(getHost(url), getPort(url)); // extractPort());
             // if this connects, we can give a 200 OK back to client, which will then allow
             // it to initate further packet transfers.
             // BufferedWriter br = new BufferedWriter(new
@@ -169,7 +190,7 @@ public class ConnectRequest implements Request {
             // read from client, write to server. read from remote, write to client. repeat.
 
             new Thread(() -> {
-                while (true) {
+                while (!socket.isClosed() && !downstreamSocket.isClosed()) {
                     try {
                         Thread.sleep(500);
                         System.out.println("Thread: Socket (bound, connected, closed, in avail): (" + socket.isBound()
@@ -184,11 +205,11 @@ public class ConnectRequest implements Request {
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                }
+                } //TODO: Close all sockets.
 
             }).start();
 
-            while (true) {
+            while (!socket.isClosed() && !downstreamSocket.isClosed()) {
                 try {
                     Thread.sleep(500);
                     System.out.println("Main: Socket (bound, connected, closed, in avail): (" + socket.isBound() + ", "
@@ -204,7 +225,7 @@ public class ConnectRequest implements Request {
                     ex.printStackTrace();
                 }
 
-            }
+            } //TODO: Close all sockets.
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -212,7 +233,7 @@ public class ConnectRequest implements Request {
         return Response.CONNECTION_ESTABLISHED();
     }
 
-    public URL getUrl() {
+    public String getUrl() {
         return url;
     }
 

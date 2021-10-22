@@ -7,6 +7,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import daproxy.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,19 +32,18 @@ public class RequestHandler {
             request.handle(socket);
             // respondOK()
 
-        } catch (IOException ex) { // AN IOException will occur if the read request is blocking and the socket is
-                                   // closed by the thread pool.
-            log.error("Client Socket " + remoteAddr + " closed due to inactivity");
         } catch (InvalidRequestException ex) {
-            log.error("Invalid Request Received");
+            log.error("Invalid Request Received", ex);
             try {
                 socket.getOutputStream().write(Response.BAD_REQUEST().toString().getBytes(StandardCharsets.US_ASCII));
             } catch (IOException ioEX) {
                 log.error("Error writing BAD Request to client", ioEX);
 
             }
-            
-        }finally {
+        } catch (IOException ex) { // AN IOException will occur if the read request is blocking and the socket is
+            // closed by the thread pool.
+            log.error("Client Socket " + remoteAddr + " closed due to inactivity", ex);
+        } finally {
             try {
                 socket.close();
             } catch (IOException ex) {
@@ -56,18 +56,21 @@ public class RequestHandler {
         InputStream in = socket.getInputStream();
         boolean validConnectRequest = false;
 
-        ByteBuffer buff = ByteBuffer.wrap(new byte[REQUEST_BUFFER_SIZE]);      
+        ByteBuffer buff = ByteBuffer.wrap(new byte[REQUEST_BUFFER_SIZE]);
         while (!validConnectRequest) {
-            byte[] tmp = in.readAllBytes();
-            buff.put(tmp);
-            
+            byte[] tmp = new byte[REQUEST_BUFFER_SIZE];
+            int numBytes = in.read(tmp); // whenever I try to use readAllBytes, it just hangs indefintely.
+            buff.put(tmp, 0, numBytes);
+
+            log.debug("Received new bytes: " + LogUtils.bytesToHex(tmp, 0, numBytes));
+            log.debug("Request Buffer: " + LogUtils.bytesToHex(buff.array(), 0, buff.position()));
 
             try {
-                return ConnectRequest.parseConnectRequest(buff.array(), buff.position()) ;//firstRequest.toString());
+                return ConnectRequest.parseConnectRequest(buff.array(), buff.position());// firstRequest.toString());
             } catch (IncompleteRequestException ex) {
                 log.debug("Partially formed request. Waiting for more");
             }
-            
+
             // System.out.println("HEX Output: " + hex(buf, 0, recvBytes));
             // System.out.println("Processing Start of Request: reading " + recvBytes );
         }

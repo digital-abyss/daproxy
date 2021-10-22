@@ -9,6 +9,5 @@ public enum RequestMethod {
     CONNECT,
     OPTIONS,
     TRACE,
-    PATCH,
-    INVALID
+    PATCH;
 }
