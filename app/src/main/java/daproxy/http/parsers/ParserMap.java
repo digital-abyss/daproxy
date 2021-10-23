@@ -12,7 +12,7 @@ public class ParserMap {
     ));
     
     private static final RequestParser DEFAULT = new DefaultParser();
-    public RequestParser get(RequestMethod rm) {
+    public static RequestParser get(RequestMethod rm) {
         if(!H_MAP.containsKey(rm)) {
             return DEFAULT;
         }

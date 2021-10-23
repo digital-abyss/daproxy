@@ -10,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 
 import daproxy.http.exceptions.IncompleteRequestException;
 import daproxy.http.exceptions.InvalidRequestException;
+import daproxy.http.parsers.ParserMap;
+import daproxy.http.parsers.RequestParser;
+import daproxy.http.request.Request;
 import daproxy.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +94,7 @@ public class RequestHandler {
         throw new InvalidRequestException("Did not find valid request method");
     }
 
-    public ConnectRequest waitForConnect() throws IOException, InvalidRequestException {
+    public Request waitForConnect() throws IOException, InvalidRequestException {
         InputStream in = socket.getInputStream();
 
         ByteBuffer buff = ByteBuffer.wrap(new byte[REQUEST_BUFFER_SIZE]);
@@ -109,7 +112,9 @@ public class RequestHandler {
             log.debug("Request Buffer: " + LogUtils.bytesToHex(buff.array(), 0, buff.position()));
 
             try {
-                return ConnectRequest.parseConnectRequest(buff.array(), buff.position());// firstRequest.toString());
+                RequestMethod rm = parseHTTPMethod(buff.array(), buff.position());
+                RequestParser parser = ParserMap.get(rm);
+                return parser.parse(buff.array(), buff.position());// firstRequest.toString());
             } catch (IncompleteRequestException ex) {
                 log.debug("Partially formed request. Waiting for more");
             }

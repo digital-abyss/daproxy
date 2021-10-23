@@ -1,7 +1,5 @@
 package daproxy.http;
 
-import java.nio.charset.StandardCharsets;
-
 public enum RequestMethod {
     GET,
     HEAD,
