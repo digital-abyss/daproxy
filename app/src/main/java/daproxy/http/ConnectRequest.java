@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
+import daproxy.http.exceptions.IncompleteRequestException;
+import daproxy.http.exceptions.InvalidRequestException;
 import daproxy.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 

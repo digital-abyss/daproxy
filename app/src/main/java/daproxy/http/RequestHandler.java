@@ -8,6 +8,8 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import daproxy.http.exceptions.IncompleteRequestException;
+import daproxy.http.exceptions.InvalidRequestException;
 import daproxy.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +53,42 @@ public class RequestHandler {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public RequestMethod parseHTTPMethod(byte[] request, int length) throws InvalidRequestException {
+        if (length < RequestMethod.shortest()) {
+            throw new InvalidRequestException("Incoming request too short");
+        }
+        log.debug("Request = " + request);
+
+        for(RequestMethod m : RequestMethod.values()) {
+            byte[] mB = m.toString().getBytes(StandardCharsets.US_ASCII);
+
+            if(length < mB.length + 1) { // +1 for checking for a space after
+                continue;
+            }
+            log.debug("Considering " + m + " mb.length = " + mB.length);
+            int i = 0;
+            for( ; i < length && i < mB.length; i++) {
+                if (mB[i] != request[i]) {
+                    log.debug("Considering " + m + " breaking at i = " + i);
+                    break;
+
+                }
+            }
+            log.debug("Considering " + m + " i = " + i);
+            if (i < mB.length) {
+                continue;
+            }
+
+            if(request[i] != ' ') {
+                log.debug("request[" + i + "] = " + request[i] );
+                continue;
+            }
+            return m;
+        }
+
+        throw new InvalidRequestException("Did not find valid request method");
     }
 
     public ConnectRequest waitForConnect() throws IOException, InvalidRequestException {
