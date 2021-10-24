@@ -89,6 +89,7 @@ One approach is to use an existing proxy solution.  For example [mitmproxy](http
 
 # Resources
 
+* [Detecting Socket Disconnect](https://stackoverflow.com/questions/14010194/detecting-socket-disconnection)
 * [HTTP Connect on MDM](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT)
 
 * [HTTP Server Design NIO v IO](http://beefchunk.com/documentation/network/programming/tymaPaulMultithreaded.pdf)

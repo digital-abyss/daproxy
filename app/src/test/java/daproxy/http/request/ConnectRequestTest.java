@@ -1,4 +1,4 @@
-package daproxy.http;
+package daproxy.http.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

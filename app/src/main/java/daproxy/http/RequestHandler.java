@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import daproxy.http.exceptions.IncompleteRequestException;
 import daproxy.http.exceptions.InvalidRequestException;
+import daproxy.http.exceptions.NotYetImplementedException;
 import daproxy.http.parsers.ParserMap;
 import daproxy.http.parsers.RequestParser;
 import daproxy.http.request.Request;
@@ -38,7 +39,7 @@ public class RequestHandler {
             request.handle(socket);
             // respondOK()
 
-        } catch (InvalidRequestException ex) {
+        } catch (InvalidRequestException | NotYetImplementedException ex) {
             log.error("Invalid Request Received", ex);
             try {
                 socket.getOutputStream().write(Response.BAD_REQUEST().toString().getBytes(StandardCharsets.US_ASCII));
@@ -48,7 +49,7 @@ public class RequestHandler {
             }
         } catch (IOException ex) { // AN IOException will occur if the read request is blocking and the socket is
             // closed by the thread pool.
-            log.error("Client Socket " + remoteAddr + " closed due to inactivity", ex);
+            log.error("Client Socket " + remoteAddr + " closed.", ex);
         } finally {
             try {
                 socket.close();
@@ -118,12 +119,7 @@ public class RequestHandler {
             } catch (IncompleteRequestException ex) {
                 log.debug("Partially formed request. Waiting for more");
             }
-
-            // System.out.println("HEX Output: " + hex(buf, 0, recvBytes));
-            // System.out.println("Processing Start of Request: reading " + recvBytes );
         }
-        // System.out.println("Text = " + firstRequest.toString());
-        // System.out.println("Response = " + response);
 
         // RFC2817 [Page 7]: Like any other pipelined HTTP/1.1 request, data to be
         // tunneled may be
@@ -133,8 +129,6 @@ public class RequestHandler {
         // is outstanding.
         // ==> you cannot discard any data after on the pipe, and should be forwarded to
         // the target proxy host.
-
-        //return null;
     }
 
 }
