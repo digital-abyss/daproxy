@@ -1,14 +1,17 @@
 package daproxy.http.parsers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import daproxy.http.RequestMethod;
 import daproxy.http.exceptions.IncompleteRequestException;
@@ -37,5 +40,31 @@ public class ConnectParserTest {
         ConnectRequest cr = (ConnectRequest) req;
         assertThat(cr.getUrl().getHost()).isEqualTo(url);
         assertThat(cr.getUrl().getPort()).isEqualTo(port);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "",
+        "C",
+        "CO",
+        "CONNECT",
+        "CONNECT ",
+        "CONNECT a",
+        "CONNECT asdf.com",
+        "CONNECT blog.digitalabyss.ca:443",
+        "CONNECT blog.digitalabyss.ca:443 HTTP/1.1",
+        "CONNECT blog.digitalabyss.ca:443 HTTP/1.1\r",
+        "CONNECT blog.digitalabyss.ca:443 HTTP/1.1\r\n",
+        "CONNECT blog.digitalabyss.ca:443 HTTP/1.1\r\n\r",
+
+    })
+    public void testIncompleteRequest(String connectString) {
+        byte[] requestAsBytes = connectString.getBytes(StandardCharsets.US_ASCII);
+
+        assertThatThrownBy(() -> {
+            ConnectParser cp = new ConnectParser();
+            cp.parse(requestAsBytes, requestAsBytes.length);
+    
+        }).isInstanceOf(IncompleteRequestException.class);
     }
 }
