@@ -32,6 +32,10 @@ public class ConnectRequest implements Request {
         return RequestMethod.CONNECT;
     }
 
+    public Url getUrl() {
+        return url;
+    }
+
     @Override
     public Response handle(Socket socket) {
         log.debug("Handling a Connect Request to url: " + url);

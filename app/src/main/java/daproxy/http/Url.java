@@ -8,9 +8,11 @@ import java.net.MalformedURLException;
  * parser for handling specifically CONNECT requests. For connect request, the
  * URL must be in authority-form:
  * https://httpwg.org/specs/rfc7230.html#authority-form About the authority
- * form: https://datatracker.ietf.org/doc/html/rfc3986#section-3.2 TODO:
- * consider replacing with: either https://github.com/smola/galimatias or
- * https://github.com/anthonynsimon/jurl
+ * form: https://datatracker.ietf.org/doc/html/rfc3986#section-3.2 
+ * and https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
+ * TODO: consider replacing with: 
+ *  https://github.com/smola/galimatias or
+ *  https://github.com/anthonynsimon/jurl
  */
 public class Url {
 
