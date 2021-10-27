@@ -67,4 +67,24 @@ public class ConnectParserTest {
     
         }).isInstanceOf(IncompleteRequestException.class);
     }
+
+    private static Stream<Arguments> provideInvalidConnectRequests() {
+        return Stream.of(
+            Arguments.of("CONNECTA asdf.com:443 HTTP/1.1\r\n\r\n", InvalidRequestException.class), 
+            Arguments.of("CONNECT blog .digitalabyss.ca HTTP/1.1 \r\n\r\n ", InvalidRequestException.class),
+            Arguments.of("CONNECT blog.digitalabyss.ca \r\n\r\n ", InvalidRequestException.class)
+            );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidConnectRequests")
+    public void testInvalidConnect(String connectString, Class<? extends Exception> exceptionType) {
+        byte[] requestAsBytes = connectString.getBytes(StandardCharsets.US_ASCII);
+
+        assertThatThrownBy(() -> {
+            ConnectParser cp = new ConnectParser();
+            cp.parse(requestAsBytes, requestAsBytes.length);
+    
+        }).isInstanceOf(exceptionType);
+    }
 }

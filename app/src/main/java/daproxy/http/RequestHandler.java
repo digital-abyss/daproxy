@@ -18,7 +18,7 @@ import daproxy.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RequestHandler {
+public class RequestHandler implements Runnable{
 
     private static final int REQUEST_BUFFER_SIZE = 8092;
 
@@ -28,7 +28,8 @@ public class RequestHandler {
         this.socket = socket;
     }
 
-    public void handle() {
+    @Override
+    public void run() {
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         SocketAddress localAddr = socket.getLocalSocketAddress();
         try {
@@ -109,8 +110,8 @@ public class RequestHandler {
 
             buff.put(tmp, 0, numBytes);
 
-            log.debug("Received new bytes: " + LogUtils.bytesToHex(tmp, 0, numBytes));
-            log.debug("Request Buffer: " + LogUtils.bytesToHex(buff.array(), 0, buff.position()));
+            // log.debug("Received new bytes: " + LogUtils.bytesToHex(tmp, 0, numBytes));
+            // log.debug("Request Buffer: " + LogUtils.bytesToHex(buff.array(), 0, buff.position()));
 
             try {
                 RequestMethod rm = parseHTTPMethod(buff.array(), buff.position());
@@ -130,5 +131,4 @@ public class RequestHandler {
         // ==> you cannot discard any data after on the pipe, and should be forwarded to
         // the target proxy host.
     }
-
 }

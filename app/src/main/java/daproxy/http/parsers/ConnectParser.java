@@ -33,6 +33,7 @@ public class ConnectParser implements RequestParser {
      * 
      * @param request - a String object containing a sequence of characters.
      * @return valid ConnectRequest if the sequence contains a valid connect request
+     * Note: URL validation (ie, if it includes port) is not considered here.
      * 
      */
     private static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived)
