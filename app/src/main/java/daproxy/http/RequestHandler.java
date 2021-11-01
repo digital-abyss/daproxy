@@ -46,7 +46,6 @@ public class RequestHandler implements Runnable{
                 socket.getOutputStream().write(Response.BAD_REQUEST().toString().getBytes(StandardCharsets.US_ASCII));
             } catch (IOException ioEX) {
                 log.error("Error writing BAD Request to client", ioEX);
-
             }
         } catch (IOException ex) { // AN IOException will occur if the read request is blocking and the socket is
             // closed by the thread pool.
@@ -130,5 +129,29 @@ public class RequestHandler implements Runnable{
         // is outstanding.
         // ==> you cannot discard any data after on the pipe, and should be forwarded to
         // the target proxy host.
+    }
+
+    /**
+     * Rejects a request due to too many active connections on the server.  Tries to return a HTTP 503 to client, and closes the socket.
+     */
+    public void reject() {
+        try {
+            socket.getOutputStream().write(Response.SERVICE_UNAVAILABLE().toString().getBytes(StandardCharsets.US_ASCII));
+        } catch (IOException ioEX) {
+            log.error("Error writing Service Unavailable to client", ioEX);
+        } finally {
+            terminate();
+        }
+    }
+
+    /**
+     * This method will close the socket, and rely on TCP to properly inform the client
+     */
+    public void terminate() {
+        try {
+            socket.close();
+        } catch (IOException ioEX) {
+            log.error("Error trying to close socket", ioEX);
+        }   
     }
 }

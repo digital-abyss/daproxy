@@ -11,7 +11,8 @@ public class Response {
     private final Map<Integer, String> codeMap = Collections.unmodifiableMap(Map.of(
         200, "Connection established",
         400, "BAD REQUEST",
-        404, "NOT FOUND"
+        404, "NOT FOUND",
+        503, "SERVICE UNAVAILBLE"
     ));
 
     public static Response CONNECTION_ESTABLISHED() {
@@ -20,8 +21,11 @@ public class Response {
     public static Response BAD_REQUEST() {
         return new Response(400);
     }
-    public static Response NOT_FOUD() {
+    public static Response NOT_FOUND() {
         return new Response(404);
+    }
+    public static Response SERVICE_UNAVAILABLE() {
+        return new Response(503);
     }
 
     public Response(int code) {
