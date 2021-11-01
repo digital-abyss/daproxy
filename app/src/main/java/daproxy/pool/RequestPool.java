@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestPool {
 
     private final int QUEUE_SIZE = 2048;
-    private final int corePoolSize = Runtime.getRuntime().availableProcessors();
-    private final int maximumPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+    private final int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
+    private final int maximumPoolSize = corePoolSize;
     private final int keepAliveTime = 10000;
     private final TimeUnit unit = TimeUnit.MILLISECONDS;
     private final BlockingQueue<Runnable> requestQueue;
