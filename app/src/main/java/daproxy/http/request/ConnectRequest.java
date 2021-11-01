@@ -61,7 +61,7 @@ public class ConnectRequest implements Request {
             // it to initate further packet transfers.
             // BufferedWriter br = new BufferedWriter(new
             // OutputStreamWriter(socket.getOutputStream()));
-            Response resp = new Response(200);
+            Response resp = Response.CONNECTION_ESTABLISHED;
 
             socket.getOutputStream().write(resp.toString().getBytes());
             socket.getOutputStream().flush();
@@ -80,7 +80,7 @@ public class ConnectRequest implements Request {
             ex.printStackTrace();
         }
 
-        return Response.CONNECTION_ESTABLISHED();
+        return Response.CONNECTION_ESTABLISHED;
     }
 
 

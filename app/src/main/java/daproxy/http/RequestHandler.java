@@ -43,7 +43,7 @@ public class RequestHandler implements Runnable{
         } catch (InvalidRequestException | NotYetImplementedException ex) {
             log.error("Invalid Request Received", ex);
             try {
-                socket.getOutputStream().write(Response.BAD_REQUEST().toString().getBytes(StandardCharsets.US_ASCII));
+                socket.getOutputStream().write(Response.BAD_REQUEST.toString().getBytes(StandardCharsets.US_ASCII));
             } catch (IOException ioEX) {
                 log.error("Error writing BAD Request to client", ioEX);
             }
@@ -136,7 +136,7 @@ public class RequestHandler implements Runnable{
      */
     public void reject() {
         try {
-            socket.getOutputStream().write(Response.SERVICE_UNAVAILABLE().toString().getBytes(StandardCharsets.US_ASCII));
+            socket.getOutputStream().write(Response.SERVICE_UNAVAILABLE.toString().getBytes(StandardCharsets.US_ASCII));
         } catch (IOException ioEX) {
             log.error("Error writing Service Unavailable to client", ioEX);
         } finally {
