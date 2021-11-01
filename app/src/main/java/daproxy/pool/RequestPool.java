@@ -25,7 +25,7 @@ public class RequestPool {
     }
 
     public void submit(RequestHandler handler) {
-        log.info("RequestPool: received requestHandler: " + handler);
+        log.info("RequestPool: received requestHandler: {} ", handler);
 
         // handler.run();
         tp.execute(handler);

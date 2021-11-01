@@ -3,10 +3,12 @@ package daproxy.http.request;
 import java.io.IOException;
 import java.net.Socket;
 
+import daproxy.conf.Config;
 import daproxy.http.IOHelper;
 import daproxy.http.RequestMethod;
 import daproxy.http.Response;
 import daproxy.http.Url;
+import daproxy.http.exceptions.InvalidRequestException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,11 +39,23 @@ public class ConnectRequest implements Request {
     }
 
     @Override
-    public Response handle(Socket socket) {
-        log.debug("Handling a Connect Request to url: " + url);
-        log.debug("Did not handle headers: " + headersBlob);
-        log.debug("Did not write possible first bytes: " + firstBytesToWrite);
+    public Response handle(Socket socket) throws InvalidRequestException {
+        log.debug("Handling a Connect Request to url: {}", url);
+        log.debug("Did not handle headers: {}", headersBlob);
+        log.debug("Did not write possible first bytes: {} ", firstBytesToWrite);
         try {
+            boolean matches = false;
+            for(String allowedUrl : Config.getConfig().getAllowList()) {
+                if (getUrl().getHost().matches(allowedUrl)) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (!matches) {
+                throw new InvalidRequestException("host " + getUrl().getHost() + " is not in allowList of" + Config.getConfig().getAllowList());
+            }
+
+
             Socket downstreamSocket = new Socket(url.getHost(), url.getPort()); // extractPort());
             // if this connects, we can give a 200 OK back to client, which will then allow
             // it to initate further packet transfers.
@@ -51,7 +65,7 @@ public class ConnectRequest implements Request {
 
             socket.getOutputStream().write(resp.toString().getBytes());
             socket.getOutputStream().flush();
-            log.debug("Wrote " + resp.toString() + " to client socket to indicate successful connect to downstream");
+            log.debug("Wrote  {} to client socket to indicate successful connect to downstream", resp);
 
             // read from client, write to server. read from remote, write to client. repeat.
 
@@ -62,7 +76,7 @@ public class ConnectRequest implements Request {
 
             writeAllData(downstreamSocket, socket);
 
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 

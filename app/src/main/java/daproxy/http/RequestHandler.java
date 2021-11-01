@@ -33,7 +33,7 @@ public class RequestHandler implements Runnable{
         SocketAddress remoteAddr = socket.getRemoteSocketAddress();
         SocketAddress localAddr = socket.getLocalSocketAddress();
         try {
-            log.debug("accepted connection from " + remoteAddr + " with connection " + localAddr);
+            log.debug("accepted connection from {} with connection {} ", remoteAddr, localAddr);
 
             Request request = waitForConnect();
 
@@ -64,7 +64,7 @@ public class RequestHandler implements Runnable{
         if (length < RequestMethod.shortest()) {
             throw new InvalidRequestException("Incoming request too short");
         }
-        log.debug("Request = " + request);
+        log.debug("Request =  {}", request);
 
         for(RequestMethod m : RequestMethod.values()) {
             byte[] mB = m.toString().getBytes(StandardCharsets.US_ASCII);
@@ -72,22 +72,22 @@ public class RequestHandler implements Runnable{
             if(length < mB.length + 1) { // +1 for checking for a space after
                 continue;
             }
-            log.debug("Considering " + m + " mb.length = " + mB.length);
+            log.debug("Considering  {} mb.length = {} ", m, mB.length);
             int i = 0;
             for( ; i < length && i < mB.length; i++) {
                 if (mB[i] != request[i]) {
-                    log.debug("Considering " + m + " breaking at i = " + i);
+                    log.debug("Considering {} breaking at i = {} ", m, i);
                     break;
 
                 }
             }
-            log.debug("Considering " + m + " i = " + i);
+            log.debug("Considering {} i = {}", m, i);
             if (i < mB.length) {
                 continue;
             }
 
             if(request[i] != ' ') {
-                log.debug("request[" + i + "] = " + request[i] );
+                log.debug("request[{}] = {}", i, request[i] );
                 continue;
             }
             return m;

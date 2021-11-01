@@ -38,13 +38,16 @@ public class ConnectParser implements RequestParser {
      */
     private static ConnectRequest parseConnectRequest(byte[] buf, int dataReceived)
             throws InvalidRequestException, IncompleteRequestException {
-        log.debug("Parsing Connect Request\n" + new String(buf, 0, dataReceived, StandardCharsets.US_ASCII));
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Parsing Connect Request:\n {}", new String(buf, 0, dataReceived, StandardCharsets.US_ASCII));
+        }
 
         int i = checkForConnectToken(buf, dataReceived);
 
         i = parseUrl(buf, dataReceived, i);
         String url = new String(buf, CONNECT_TOKEN.length(), i - CONNECT_TOKEN.length(), StandardCharsets.US_ASCII);
-        log.debug("Found URL = " + url + " i = " + i);
+        log.debug("Found URL = {} i = {} ", url, i);
 
         i = validateProtocol(buf, dataReceived, i);
 
@@ -101,7 +104,7 @@ public class ConnectParser implements RequestParser {
         if (i >= dataReceived) {
             throw new IncompleteRequestException("Headers are incomplete");
         }
-        log.debug("Found complete request i = " + i + " dataReceived = " + dataReceived);
+        log.debug("Found complete request i = {} dataReceived = {}", i, dataReceived);
         return i;
     }
 
@@ -126,14 +129,18 @@ public class ConnectParser implements RequestParser {
                 break;
             }
         }
-        log.debug("Found first CRLF at " + i);
+        log.debug("Found first CRLF at {} ", i);
         return i;
     }
 
     private static int validateProtocol(byte[] buf, int dataReceived, int i) throws InvalidRequestException {
         byte[] httpToken = HTTP_TOKEN.getBytes(StandardCharsets.US_ASCII);
         i++;
-        log.debug("httpToken = " + LogUtils.bytesToHex(httpToken, 0, httpToken.length));
+
+        if (log.isDebugEnabled()) {
+            log.debug("httpToken = {} ", LogUtils.bytesToHex(httpToken, 0, httpToken.length));
+        }
+
         for (int j = 0; i < dataReceived && j < HTTP_TOKEN.length(); ++i, ++j) {
             // log.debug("i = " + i + " j = " + j + " buf[i] = " + buf[i] + " httpToken[j] =
             // " + httpToken[j]);
@@ -177,7 +184,7 @@ public class ConnectParser implements RequestParser {
                 throw new InvalidRequestException("Invalid Request.  Server only handles CONNECT Requests");
             }
         }
-        log.debug("Found Connect Token i = " + i);
+        log.debug("Found Connect Token i = {} ", i);
         return i;
     }
 }

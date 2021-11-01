@@ -4,6 +4,7 @@ import java.net.Socket;
 
 import daproxy.http.RequestMethod;
 import daproxy.http.Response;
+import daproxy.http.exceptions.InvalidRequestException;
 
 public interface Request {
 
@@ -19,6 +20,6 @@ public interface Request {
      * @param socket
      * @return an HTTP Response object that can be serialized on the socket.
      */
-    public Response handle(Socket socket);
+    public Response handle(Socket socket) throws InvalidRequestException;
 
 }
