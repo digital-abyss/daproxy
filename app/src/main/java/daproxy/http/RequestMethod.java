@@ -1,30 +1,15 @@
 package daproxy.http;
 
 public enum RequestMethod {
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE,
-    PATCH;
+    GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH;
 
-    static int shortestLength = Integer.MAX_VALUE;
-    static {
-        for(RequestMethod m : RequestMethod.values()) {
-            if (m.toString().length() < shortestLength) {
-                shortestLength = m.toString().length();
-            }
-        }
-    }
+    private static final int SHORTEST_REQUEST = 3;
 
     /**
      * 
      * @return The length of the shortest RequestMethod.
      */
     public static int shortest() {
-        return shortestLength;
+        return SHORTEST_REQUEST;
     }
 }
