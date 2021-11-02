@@ -55,22 +55,30 @@ wget https://blog.digitalabyss.ca
 
 ### Results
 
+* 200 requests with 50 concurrent requests running locally (making these not so scientific ;) ):
 
+| run | average response time (seconds) | throughput (req/sec) |
+| --- | ------------------------------ | -------------------- |
+| no proxy | 0.1213 | 374.6539 |
+| mitmproxy | 0.2695 | 178.4888 |
+| DAProxy | 0.3819 | 116.4780 |
 
+The results indicate that proxies, in general, may have a significant relative performance impact compared to no proxies.  The DAProxy implementation has some significant room for growth to be able to match exisiting 'out of the box' proxies, but for a completely untuned  first attempt (including JVM and GC configuration options), it could be worse :)
 
-
-
+The service was not tested at saturation (when request volume exceeds the server's ability to handle), so it is not possible to comment on how gracefully performance degrades.  This is a future TODO.
 
 
 # Architecture / Application Design
 
-* This has been a fun assignment.  While seemingly simple question, there are many caveats and corner cases to implementing this "correctly".  Here are some design trade-offs I've made to try and implement within a reasonable timeframe.
-        * Only CONNECT requests will be served.  All other requests will get a 400 ERROR response code.
+* This has been a fun assignment.  Though a seemingly simple question, the restrictions placed on the design (e.g. handle threading and http connections without resorting to ane xisting library) means that there were many caveats and corner cases to implementing this "correctly".  Here are some design trade-offs I've made to try and implement within a reasonable timeframe.
+        * Only CONNECT requests are served.  All other requests will get a 400 ERROR response code.
         * The server will examine the incoming request looking for it to be compliant with https://httpwg.org/specs/rfc7231.html#CONNECT
-        * The server will not support proxy authorization
-        * The server is currently vulnerable to a DOS attack where clients send keep-alive headers in https and the target server keeps connections alive
+        * The server will does not support proxy authorization
+        * The server does not support HTTP Pipelining.
+        * Most configuration is 
+        
 
-* I've gone with a classic blocking IO design (and then benchmark to see how scalable it is). There does seem to be some contention in the community which is "more scalable":  While older, these authors have insights into server design [HTTP Server Design NIO v IO](http://beefchunk.com/documentation/network/programming/tymaPaulMultithreaded.pdf) and [C10K Problem](http://www.kegel.com/c10k.html#top) that do seem relevant still in the present.
+* I've gone with a classic blocking IO design versus using NIO. There does seem to be some contention in the Java community which is more scalable:  While older, these authors share insights into server design [HTTP Server Design NIO v IO](http://beefchunk.com/documentation/network/programming/tymaPaulMultithreaded.pdf) and [C10K Problem](http://www.kegel.com/c10k.html#top) that still seem relevant today.  It would be fun to write a competing NIO implementation to compare/contrast the performance characteristics of each approach.
 
 
 # Resources
