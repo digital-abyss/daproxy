@@ -67,6 +67,12 @@ The results indicate that proxies, in general, may have a significant relative p
 
 The service was not tested at saturation (when request volume exceeds the server's ability to handle), so it is not possible to comment on how gracefully performance degrades.  This is a future TODO.
 
+# Testing
+
+The gradle build runs unit tests and generates a code coverage report in `/app/build/reports/jacoco/test/html`
+
+For correctness, a combination of unit tests and end to end tests (eg. curl and hey) were used to verify accuracy.  Given the time constrained nature of the request, functional code was favoured over code coverage at the unit test level for areas of the application that would be tested by end to end tests.  To improve test coverage, some areas would require a bit of refactoring to be able to inject mocks (vs usage of 'new' in a few areas). Other forms of testing (e.g. security/vulnerability scanning) were also left as a 'TODO'.
+
 
 # Architecture / Application Design
 
