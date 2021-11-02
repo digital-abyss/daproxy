@@ -20,6 +20,9 @@ public class Config {
     @Getter @Setter
     private List<String> allowList;
 
+    @Getter @Setter
+    private int listenPort;
+
 
     public static void loadConfig(String filename) throws FileNotFoundException, IOException{
         Yaml yaml = new Yaml();

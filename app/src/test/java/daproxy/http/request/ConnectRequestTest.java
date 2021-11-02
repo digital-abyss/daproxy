@@ -1,12 +1,12 @@
 package daproxy.http.request;
 
-import static org.assertj.core.api.Assertions.assertThat;
+// import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.stream.Stream;
+// import java.util.stream.Stream;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+// import org.junit.jupiter.params.ParameterizedTest;
+// import org.junit.jupiter.params.provider.Arguments;
+// import org.junit.jupiter.params.provider.MethodSource;
 
 
 public class ConnectRequestTest {
@@ -21,7 +21,5 @@ public class ConnectRequestTest {
     // @MethodSource("provideHttpHeaderString")
     // public void testExractionMethods(String connectString, String url, int port ) {
     //     ConnectRequest cr = new ConnectRequest(connectString);
-    //     assertThat(cr.extractUrl()).isEqualTo(url);
-    //     assertThat(cr.extractPort()).isEqualTo(port);
     // }
 }

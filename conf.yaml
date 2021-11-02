@@ -1,2 +1,3 @@
+listenPort: 8085
 allowList:
   - blog.digitalabyss.ca
