@@ -7,7 +7,7 @@ DAProxy has basic configuration to allow individuals to configure an allow-list 
 ## Prerequisites 
 
 * [Gradle 7.2](https://gradle.org/)
-* Java 11 - consider using [sdkman](https://sdkman.io/) to install/manage your Java version.
+* Java 11 - This was developed using [sdkman](https://sdkman.io/) to install/manage your Java version.
 
 ## Building
 
