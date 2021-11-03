@@ -71,7 +71,7 @@ The service was not tested at saturation (when request volume exceeds the server
 
 The gradle build runs unit tests and generates a code coverage report in `/app/build/reports/jacoco/test/html`
 
-For correctness, a combination of unit tests and end to end tests (eg. curl and hey) were used to verify accuracy.  Given the time constrained nature of the request, functional code was favoured over code coverage at the unit test level for areas of the application that would be tested by end to end tests.  To improve test coverage, some areas would require a bit of refactoring to be able to inject mocks (vs usage of 'new' in a few areas). Other forms of testing (e.g. security/vulnerability scanning) were also left as a 'TODO'.
+For correctness, a combination of unit tests and end to end tests (eg. curl and hey) were used to verify accuracy.  Given the time constrained nature of the request, functional code was favoured over code coverage at the unit test level for areas of the application that would be tested by end to end tests.  To improve test coverage, some areas would require a bit of refactoring to be able to inject mocks (vs usage of 'new' in a few areas). Other forms of testing (e.g. security/vulnerability scanning) were also left as a 'TODO'.  I would also normally consider writing some integration tests that would use a misbehaving downstream (e.g. one that holds on to socket connections, introduces lag, unexpectedly hangs up, etc.) to test some of the code that is harder to test at the unit level, as well as integrate a monitoring tool to allow for production monitoring and observability.
 
 
 # Architecture / Application Design
