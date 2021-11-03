@@ -81,7 +81,7 @@ For correctness, a combination of unit tests and end to end tests (eg. curl and 
         * The server will examine the incoming request looking for it to be compliant with https://httpwg.org/specs/rfc7231.html#CONNECT
         * The server will does not support proxy authorization
         * The server does not support HTTP Pipelining.
-        * Most configuration is 
+        * Most configuration is hard coded as static final (and should be extracted into the configuration)
         
 
 * I've gone with a classic blocking IO design versus using NIO. There does seem to be some contention in the Java community which is more scalable:  While older, these authors share insights into server design [HTTP Server Design NIO v IO](http://beefchunk.com/documentation/network/programming/tymaPaulMultithreaded.pdf) and [C10K Problem](http://www.kegel.com/c10k.html#top) that still seem relevant today.  It would be fun to write a competing NIO implementation to compare/contrast the performance characteristics of each approach.
